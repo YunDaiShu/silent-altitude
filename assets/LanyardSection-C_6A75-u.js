@@ -1,4 +1,4 @@
-import{r as on,j as he,s as il}from"./index-CIdidgo-.js";/**
+import{r as on,j as he,s as il}from"./index-ByJAKV2h.js";/**
  * @license
  * Copyright 2010-2024 Three.js Authors
  * SPDX-License-Identifier: MIT
