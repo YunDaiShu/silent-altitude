@@ -98,15 +98,14 @@ const commitBranch = async (branch, files, message, extra = []) => {
   let parent = await headOf(branch);
 
   if (!parent) {
-    // The blob API answers 409 "Git Repository is empty" until a branch has one commit,
-    // so seed it with a throwaway marker that the real commit then removes.
-    const seed = await call('PUT', '/repos/' + owner + '/' + REPO + '/contents/.seed', {
-      message: 'chore: initialise ' + branch,
-      content: Buffer.from('init\n').toString('base64'),
-      ...(branch === repo.default_branch ? {} : { branch }),
-    });
-    parent = seed.commit.sha;
-    console.log(branch + ': seeded at ' + parent.slice(0, 7));
+    // Fork the new branch from the default branch head: the blob API answers 409
+    // "Git Repository is empty" for a repository without commits, and the contents
+    // API cannot create a branch that does not exist yet.
+    const base = await headOf(repo.default_branch);
+    if (!base) throw new Error('cannot create ' + branch + ': the default branch has no commits yet');
+    await call('POST', '/repos/' + owner + '/' + REPO + '/git/refs', { ref: 'refs/heads/' + branch, sha: base });
+    parent = base;
+    console.log(branch + ': created from ' + repo.default_branch + '@' + base.slice(0, 7));
   }
 
   const start = parent;
